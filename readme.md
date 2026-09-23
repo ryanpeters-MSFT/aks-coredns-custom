@@ -8,7 +8,7 @@ The custom CoreDNS deployment:
 - Allows no more than one replica per node through required pod anti-affinity.
 - Exposes DNS over UDP and TCP at the fixed service IP `10.20.0.53`.
 - Forwards queries to Google Public DNS at `8.8.8.8`.
-- Caches responses for 5 seconds and enables cache prefetching.
+- Caches responses for 30 seconds and enables cache prefetching.
 
 The sample client opts in with this pod configuration:
 
