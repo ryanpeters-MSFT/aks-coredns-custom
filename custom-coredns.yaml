@@ -15,6 +15,7 @@ data:
         log
         health :8080
         ready :8181
+        prometheus 0.0.0.0:9153
         cache 30 {
           prefetch 10
         }
@@ -70,6 +71,9 @@ spec:
               protocol: UDP
             - name: dns-tcp
               containerPort: 53
+              protocol: TCP
+            - name: metrics
+              containerPort: 9153
               protocol: TCP
           livenessProbe:
             httpGet:
