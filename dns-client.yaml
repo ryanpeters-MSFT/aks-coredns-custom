@@ -23,7 +23,7 @@ spec:
             - sh
             - -c
           args:
-            - while true; do curl -sS -o /dev/null -w 'resolved=%{remote_ip} status=%{http_code}\n' https://www.microsoft.com/; sleep 30; done
+            - while true; do curl -sS -o /dev/null -w 'resolved=%{remote_ip} status=%{http_code}\n' https://www.microsoft.com/; sleep 5; done
           resources:
             requests:
               cpu: 10m
