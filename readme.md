@@ -15,8 +15,8 @@ The sample client opts in with this pod configuration:
 ```yaml
 dnsPolicy: None
 dnsConfig:
-	nameservers:
-		- 10.20.0.53
+  nameservers:
+    - 10.20.0.53
 ```
 
 It then requests `https://www.microsoft.com/` every 30 seconds and logs the resolved IP address and HTTP status code.
