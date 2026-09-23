@@ -18,12 +18,12 @@ spec:
           - 10.20.0.53
       containers:
         - name: client
-          image: curlimages/curl:8.16.0
+          image: busybox:1.37.0
           command:
             - sh
             - -c
           args:
-            - while true; do curl -sS -o /dev/null -w 'resolved=%{remote_ip} status=%{http_code}\n' https://www.microsoft.com/; sleep 5; done
+            - while true; do nslookup -type=A www.microsoft.com; sleep 0.2; done
           resources:
             requests:
               cpu: 10m
