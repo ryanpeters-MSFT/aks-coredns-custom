@@ -39,6 +39,13 @@ spec:
       labels:
         app: custom-coredns
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: custom-coredns
       containers:
         - name: coredns
           image: registry.k8s.io/coredns/coredns:v1.12.4
