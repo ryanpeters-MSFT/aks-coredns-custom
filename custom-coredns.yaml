@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: custom-dns
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-coredns
+  namespace: custom-dns
+data:
+  Corefile: |
+    .:53 {
+        errors
+        log
+        health :8080
+        ready :8181
+        cache 30 {
+          prefetch 10
+        }
+        forward . 8.8.8.8
+        loop
+        reload
+        loadbalance
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-coredns
+  namespace: custom-dns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: custom-coredns
+  template:
+    metadata:
+      labels:
+        app: custom-coredns
+    spec:
+      containers:
+        - name: coredns
+          image: registry.k8s.io/coredns/coredns:v1.12.4
+          args:
+            - -conf
+            - /etc/coredns/Corefile
+          ports:
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8181
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coredns
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: custom-coredns
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-coredns
+  namespace: custom-dns
+spec:
+  clusterIP: 10.20.0.53
+  selector:
+    app: custom-coredns
+  ports:
+    - name: dns-udp
+      port: 53
+      targetPort: 53
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: 53
+      protocol: TCP

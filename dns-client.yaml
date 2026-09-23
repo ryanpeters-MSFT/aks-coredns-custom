@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-client
+  template:
+    metadata:
+      labels:
+        app: dns-client
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 10.20.0.53
+      containers:
+        - name: client
+          image: curlimages/curl:8.16.0
+          command:
+            - sh
+            - -c
+          args:
+            - while true; do curl -sS -o /dev/null -w 'resolved=%{remote_ip} status=%{http_code}\n' https://www.microsoft.com/; sleep 30; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
