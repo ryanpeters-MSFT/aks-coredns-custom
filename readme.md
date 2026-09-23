@@ -19,7 +19,7 @@ dnsConfig:
     - 10.20.0.53
 ```
 
-It then requests `https://www.microsoft.com/` every 5 seconds and logs the resolved IP address and HTTP status code.
+It then queries the A record for `www.microsoft.com` five times per second and logs the DNS responses.
 
 ## Files
 
@@ -37,10 +37,10 @@ From the repository directory, run:
 
 The script creates the `akscoredns` cluster in `northcentralus` under the `rg-aks-coredns-ncus` resource group. It configures the cluster with service CIDR `10.20.0.0/16`, which contains both the AKS DNS service at `10.20.0.10` and the custom CoreDNS service at `10.20.0.53`.
 
-A successful client log resembles:
+A successful client log includes resolved addresses similar to:
 
 ```text
-resolved=23.35.30.73 status=200
+Address: 23.35.30.73
 ```
 
 To inspect the custom CoreDNS query logs, run:
@@ -48,3 +48,21 @@ To inspect the custom CoreDNS query logs, run:
 ```powershell
 kubectl logs -n custom-dns -l app=custom-coredns --prefix --tail=20
 ```
+
+## Inspect cache metrics
+
+CoreDNS exposes cache hits and prefetch activity as Prometheus metrics on port `9153`.
+
+In one PowerShell terminal, forward the metrics port from one CoreDNS replica:
+
+```powershell
+kubectl port-forward -n custom-dns deployment/custom-coredns 9153:9153
+```
+
+In another PowerShell terminal, display the cache request, hit, and prefetch counters:
+
+```powershell
+((Invoke-WebRequest http://localhost:9153/metrics).Content -split "`n") | Where-Object { $_ -match '^coredns_cache_(requests|hits|prefetch)_total' }
+```
+
+Cache misses can be calculated by subtracting `coredns_cache_hits_total` from `coredns_cache_requests_total`. An increase in `coredns_cache_prefetch_total` confirms that prefetching occurred. Because port forwarding targets one replica, repeat the inspection for the other CoreDNS Pod when checking totals across the deployment.
